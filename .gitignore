@@ -1,0 +1,62 @@
+# OS / editor noise
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Python build / cache
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+
+# Virtual environments / local tool state
+.venv/
+venv/
+env/
+.python-version
+
+# Secrets / local configuration
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+*.token
+.oci/
+
+# Healthcare / research data and generated artifacts
+physionet.org/
+data/
+datasets/
+raw_data/
+derived_data/
+artifacts/
+outputs/
+reports/
+*.csv
+*.csv.gz
+*.tsv
+*.tsv.gz
+*.parquet
+*.feather
+*.arrow
+*.duckdb
+*.db
+*.sqlite
+*.sqlite3
+
+# Notebooks / local analysis
+.ipynb_checkpoints/
+
+# Logs
+*.log
