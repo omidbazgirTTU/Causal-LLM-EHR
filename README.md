@@ -5,7 +5,7 @@ Research workspace for studying how LLM-induced measurement error affects downst
 ## Current Scope
 
 - cohort and study design documentation
-- OCI-backed LLM smoke-test script
+- OCI-backed LLM smoke-test scripts
 - minimal local OCI client helpers for future development
 
 ## Repository Safety
@@ -20,10 +20,13 @@ Research workspace for studying how LLM-induced measurement error affects downst
 2. Activate `cllm-env`.
 3. Install dependencies with `pip install -r requirements.txt`.
 4. Run `python llm-script.py`.
+5. Run `python oci_model_panel_smoke_test.py`.
 
 ## Key Files
 
 - `llm-script.py`
+- `oci_model_panel_smoke_test.py`
 - `requirements.txt`
 - `.agents/`
+- `.agents/MODEL_SELECTION.md`
 - `EVALUATION_CHECKLIST.md`

@@ -16,9 +16,7 @@ LLM output is treated as noisy measurement.
 
 ## Models
 
-- Model A
-- Model B
-- Qwen
+Use the selected panel defined in `MODEL_SELECTION.md`.
 
 ## Rules
 
@@ -30,6 +28,6 @@ LLM output is treated as noisy measurement.
 
 ## Outputs
 
-- `extracted_model_A.json`
-- `extracted_model_B.json`
-- `extracted_qwen.json`
+- `extracted_model_1.json`
+- `extracted_model_2.json`
+- `extracted_model_3.json`

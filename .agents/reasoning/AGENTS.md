@@ -11,6 +11,6 @@ Generate reasoning-based variables (X̃)
 - identical prompts across models
 
 ## Outputs
-- reasoning_model_A.json
-- reasoning_model_B.json
-- reasoning_qwen.json
+- reasoning_model_1.json
+- reasoning_model_2.json
+- reasoning_model_3.json

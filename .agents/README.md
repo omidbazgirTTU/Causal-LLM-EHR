@@ -17,15 +17,17 @@ healthcare data.
 
 LLMs are treated as noisy measurement functions.
 
-## Models
+## Model Policy
 
-- Model A
-- Model B
-- Qwen
+See `MODEL_SELECTION.md`.
+
+- final paper runs use the matched-scale paper panel
+- OCI smoke tests and API debugging use the development panel only
 
 ## Document Map
 
 - `AGENTS.md`: global execution rules and hard constraints
+- `MODEL_SELECTION.md`: paper panel and development panel definitions
 - `routing.md`: workflow order and validation gates
 - `PROBLEM.md`: formal causal question
 - `COHORT_AND_SCHEMA.md`: cohort definition and observation window

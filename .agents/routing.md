@@ -14,9 +14,8 @@
 10. reporting after each phase and final comparison
 
 ## Models
-- Model A
-- Model B
-- Qwen
+
+Use the selected panel defined in `MODEL_SELECTION.md`.
 
 ## Rules
 - NEVER skip filtering

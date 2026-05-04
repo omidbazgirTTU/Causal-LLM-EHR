@@ -3,9 +3,9 @@
 ## Datasets
 
 - Gold
-- Model A
-- Model B
-- Qwen
+- Model 1 (`MODEL_SELECTION.md`)
+- Model 2 (`MODEL_SELECTION.md`)
+- Model 3 (`MODEL_SELECTION.md`)
 - Synthetic
 - reasoning datasets (`X̃`) when available
 

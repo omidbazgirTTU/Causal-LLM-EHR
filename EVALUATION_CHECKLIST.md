@@ -1,4 +1,4 @@
-# ✅ Implementation Checklist: LLM + Causal Evaluation Pipeline (Multi-Model: + QWEN)
+# ✅ Implementation Checklist: LLM + Causal Evaluation Pipeline (Three-Model Panel)
 
 ---
 
@@ -69,9 +69,9 @@
 ## 🔹 Phase 3 — Multi-Model LLM Extraction
 
 ### Models
-- [ ] Model A (e.g., GPT / OCI hosted)
-- [ ] Model B (e.g., LLaMA / open model)
-- [ ] Model C (QWEN)
+- [ ] Model 1 (see `.agents/MODEL_SELECTION.md`)
+- [ ] Model 2 (see `.agents/MODEL_SELECTION.md`)
+- [ ] Model 3 (see `.agents/MODEL_SELECTION.md`)
 
 ### Setup
 - [ ] Define strict JSON output schema  
@@ -86,9 +86,9 @@
 
 ### Storage
 - [ ] Save outputs separately:
-  - `extracted_model_A.json`
-  - `extracted_model_B.json`
-  - `extracted_qwen.json`
+  - `extracted_model_1.json`
+  - `extracted_model_2.json`
+  - `extracted_model_3.json`
 
 ---
 
@@ -115,7 +115,7 @@
 - [ ] Evaluation report per model  
 
 ### Comparison
-- [ ] Compare Model A vs Model B vs Qwen  
+- [ ] Compare Model 1 vs Model 2 vs Model 3  
 
 ---
 
@@ -124,14 +124,14 @@
 ### Dataset A (Gold)
 - [ ] Use human-labeled suspicion_time  
 
-### Dataset B (Model A)
-- [ ] Use Model A outputs  
+### Dataset B (Model 1)
+- [ ] Use Model 1 outputs  
 
-### Dataset C (Model B)
-- [ ] Use Model B outputs  
+### Dataset C (Model 2)
+- [ ] Use Model 2 outputs  
 
-### Dataset D (Qwen)
-- [ ] Use Qwen outputs  
+### Dataset D (Model 3)
+- [ ] Use Model 3 outputs  
 
 ### Common variables
 - [ ] treatment timing  
@@ -161,8 +161,8 @@
 
 ## 🔹 Phase 7 — Core Comparison (KEY RESULT)
 
-| Metric | Gold | Model A | Model B | Qwen |
-|--------|------|--------|--------|------|
+| Metric | Gold | Model 1 | Model 2 | Model 3 |
+|--------|------|---------|---------|---------|
 | Cohort size | ☐ | ☐ | ☐ | ☐ |
 | Early treatment % | ☐ | ☐ | ☐ | ☐ |
 | Hazard ratio | ☐ | ☐ | ☐ | ☐ |
@@ -183,9 +183,9 @@
 
 ### Disagreement analysis
 - [ ] Identify:
-  - Model A ≠ Model B  
-  - Model A ≠ Qwen  
-  - Model B ≠ Qwen  
+  - Model 1 ≠ Model 2  
+  - Model 1 ≠ Model 3  
+  - Model 2 ≠ Model 3  
 
 - [ ] Recompute causal effects on disagreement subset  
 
@@ -209,7 +209,7 @@
 
 ### Summary
 - [ ] Robustness conclusions  
-- [ ] Model differences (GPT vs LLaMA vs Qwen)  
+- [ ] Model differences across the selected panel  
 - [ ] Failure modes  
 
 ---
@@ -227,7 +227,7 @@
 ## 🎯 Success Criteria
 
 > Can we answer:  
-> **“Are causal conclusions stable across different LLMs (including Qwen)?”**
+> **“Are causal conclusions stable across the selected three-model panel?”**
 
 ---
 

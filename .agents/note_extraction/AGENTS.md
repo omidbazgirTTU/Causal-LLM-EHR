@@ -4,9 +4,8 @@
 Extract structured variables (X̂)
 
 ## Models
-- Model A
-- Model B
-- Qwen
+
+Use the selected panel defined in `../MODEL_SELECTION.md`.
 
 ## Schema
 - suspected_sepsis
@@ -23,6 +22,6 @@ Extract structured variables (X̂)
 - same notes and time window for every model
 
 ## Outputs
-- extracted_model_A.json
-- extracted_model_B.json
-- extracted_qwen.json
+- extracted_model_1.json
+- extracted_model_2.json
+- extracted_model_3.json

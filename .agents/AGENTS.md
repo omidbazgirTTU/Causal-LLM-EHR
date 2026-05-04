@@ -2,7 +2,8 @@
 
 1. Build cohort.
 2. Build gold dataset.
-3. Run Model A, Model B, and Qwen on the same notes.
+3. Run the selected three-model panel from `MODEL_SELECTION.md` on the same
+   notes.
 4. Evaluate extraction against gold labels.
 5. Run perturbations and robustness checks.
 6. Build analysis datasets.
@@ -24,6 +25,6 @@
 - stop on any validation failure
 - use identical prompt structure across models
 - use the same notes and time window for all models
-- use the same downstream causal pipeline across Gold, A, B, Qwen, Synthetic,
-  and reasoning datasets
+- use the same downstream causal pipeline across Gold, all three selected model
+  datasets, Synthetic, and reasoning datasets
 - compare `HR(X*)`, `HR(X̂)`, and when available `HR(X̃)`

@@ -4,7 +4,7 @@ Phase 1: Cohort
 
 Phase 2: Gold labels
 
-Phase 3: LLM extraction (A, B, Qwen)
+Phase 3: LLM extraction (selected three-model panel)
 
 Phase 4: Extraction evaluation
 

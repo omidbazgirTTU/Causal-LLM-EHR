@@ -15,5 +15,5 @@ LLM-derived measurements?
 
 ## Success Criterion
 
-Answer whether causal conclusions remain stable across Model A, Model B, and
-Qwen.
+Answer whether causal conclusions remain stable across the selected three-model
+panel in `MODEL_SELECTION.md`.
