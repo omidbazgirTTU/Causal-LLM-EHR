@@ -19,6 +19,8 @@
 - include post-treatment notes
 - change prompts across models
 - tune extractors after seeing causal results
+- introduce TF-IDF, BM25, bag-of-words, or similar lexical text-selection
+  methods into the main workflow
 
 ## Always
 
@@ -30,3 +32,4 @@
 - compare `HR(X*)`, `HR(X̂)`, and when available `HR(X̃)`
 - follow `CODE_COMMENTING.md` for new or modified code
 - follow `GIT_WORKFLOW.md` after any completed task that changes tracked files
+- follow `SEMANTIC_LLM_POLICY.md` for pipeline and code design decisions
