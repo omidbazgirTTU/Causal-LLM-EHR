@@ -1,7 +1,7 @@
 from openai import AsyncOpenAI
 
-from agent_apps.agents_gym.config.openai_client_config import load_config
-from agent_apps.agents_gym.utils.oci_openai import AsyncOciOpenAI, OciOpenAI
+from causal_llm.oci_support.config.openai_client_config import load_config
+from causal_llm.oci_support.utils.oci_openai import AsyncOciOpenAI, OciOpenAI
 
 
 def _load_required_oci_settings() -> tuple[str, str, str, str]:

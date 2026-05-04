@@ -11,8 +11,8 @@ from typing import Any
 
 from openai import BadRequestError
 
-from agent_apps.agents_gym.config.openai_client_config import load_config
-from agent_apps.agents_gym.utils.oci_openai import OciOpenAI
+from causal_llm.oci_support.config.openai_client_config import load_config
+from causal_llm.oci_support.utils.oci_openai import OciOpenAI
 
 DEFAULT_MODELS = [
     "openai.gpt-oss-20b",

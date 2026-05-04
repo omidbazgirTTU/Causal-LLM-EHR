@@ -1,8 +1,8 @@
 from pprint import pprint
 from agents import Agent, set_default_openai_api, set_default_openai_client, set_tracing_disabled
 
-from agent_apps.agents_gym.config.openai_client_config import load_config
-from agent_apps.agents_gym.runtime.api_client import get_oci_async_openai_client, get_oci_openai_client
+from causal_llm.oci_support.config.openai_client_config import load_config
+from causal_llm.oci_support.runtime.api_client import get_oci_async_openai_client, get_oci_openai_client
 
 
 def smoke_test_chat() -> None:
