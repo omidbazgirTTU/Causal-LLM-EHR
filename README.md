@@ -5,6 +5,7 @@ Research workspace for studying how LLM-induced measurement error affects downst
 ## Current Scope
 
 - cohort and study design documentation
+- Phase 1 ICU cohort builder backed by DuckDB
 - OCI-backed LLM smoke-test scripts
 - minimal local OCI client helpers for future development
 
@@ -21,10 +22,12 @@ Research workspace for studying how LLM-induced measurement error affects downst
 3. Install dependencies with `pip install -r requirements.txt`.
 4. Run `python llm-script.py`.
 5. Run `python oci_model_panel_smoke_test.py`.
+6. Run `python build_initial_cohort.py`.
 
 ## Key Files
 
 - `llm-script.py`
+- `build_initial_cohort.py`
 - `oci_model_panel_smoke_test.py`
 - `requirements.txt`
 - `.agents/`
