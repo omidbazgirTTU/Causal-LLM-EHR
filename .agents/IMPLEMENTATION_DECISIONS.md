@@ -42,3 +42,16 @@ the local dataset and the current workflow.
 Revisit this choice only if a later phase requires a distributed execution
 engine or if the local workflow becomes bottlenecked in a way DuckDB cannot
 handle cleanly.
+
+## MIMIC-IV-Note Scope And Note-Source Audit
+
+The open MIMIC-IV-Note module is not assumed to satisfy the intended
+physician-plus-nursing note design by default.
+
+- note-source availability must be audited before any extraction run
+- if the available open note source does not match the intended note domain, do
+  not silently substitute it into the main workflow
+- discharge summaries can be linked for auditing, but they are not valid
+  pre-decision inputs for the primary extraction pipeline
+- any note-domain substitution requires an explicit design decision and should
+  be documented before model runs begin

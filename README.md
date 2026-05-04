@@ -34,11 +34,15 @@ The longer rationale is documented in `.agents/IMPLEMENTATION_DECISIONS.md`.
 4. Run `python llm-script.py`.
 5. Run `python oci_model_panel_smoke_test.py`.
 6. Run `python build_initial_cohort.py`.
+7. Run `python audit_note_sources.py`.
+8. Run `python prepare_gold_annotations.py --notes-parquet <linked_notes.parquet>` once note data is available.
 
 ## Key Files
 
 - `llm-script.py`
 - `build_initial_cohort.py`
+- `audit_note_sources.py`
+- `prepare_gold_annotations.py`
 - `oci_model_panel_smoke_test.py`
 - `requirements.txt`
 - `.agents/`

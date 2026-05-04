@@ -25,6 +25,8 @@ Use the selected panel defined in `MODEL_SELECTION.md`.
 - no fabrication
 - evidence must match input text
 - run all models on the same notes
+- run a note-source audit before extraction and do not silently substitute a
+  different note domain if the intended source is unavailable
 
 ## Outputs
 
