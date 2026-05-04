@@ -1,1 +1,1 @@
-"""Gold-label preparation utilities for the Causal-LLM study."""
+"""Gold-label workflow utilities for the Causal-LLM study."""
