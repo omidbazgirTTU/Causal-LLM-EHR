@@ -1,3 +1,5 @@
+"""Construct OCI-backed OpenAI-compatible clients used by local scripts."""
+
 from openai import AsyncOpenAI
 
 from causal_llm.oci_support.config.openai_client_config import load_config
@@ -5,6 +7,7 @@ from causal_llm.oci_support.utils.oci_openai import AsyncOciOpenAI, OciOpenAI
 
 
 def _load_required_oci_settings() -> tuple[str, str, str, str]:
+    """Load and validate the minimum OCI settings required for inference calls."""
     config = load_config()
     profile = config.get("profile")
     region = config.get("region")
@@ -22,7 +25,7 @@ def _load_required_oci_settings() -> tuple[str, str, str, str]:
 
 
 def get_oci_openai_client() -> OciOpenAI:
-    """Build a sync OpenAI-compatible client backed by OCI GenAI."""
+    """Build a synchronous OpenAI-compatible client backed by OCI GenAI."""
     profile, region, compartment_id, stage = _load_required_oci_settings()
     return OciOpenAI(
         profile=profile,
@@ -35,6 +38,8 @@ def get_oci_openai_client() -> OciOpenAI:
 def get_oci_async_openai_client(local: bool = False) -> AsyncOciOpenAI | AsyncOpenAI:
     """Build an async OpenAI-compatible client backed by OCI GenAI."""
     if local:
+        # This branch is useful for local compatibility tests against a mock or
+        # local inference server without OCI credentials.
         return AsyncOpenAI(base_url="http://localhost:1234/v1", api_key="<NOTUSED>")
 
     profile, region, compartment_id, stage = _load_required_oci_settings()

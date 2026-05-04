@@ -1,3 +1,5 @@
+"""OpenAI-compatible OCI clients plus request signing helpers for local use."""
+
 import base64
 import hashlib
 from email.utils import formatdate
@@ -21,6 +23,8 @@ from openai import (
 
 
 class OciOpenAI(OpenAI):
+    """Sync OpenAI client configured to talk to OCI Generative AI inference."""
+
     def __init__(
         self,
         *,
@@ -34,6 +38,7 @@ class OciOpenAI(OpenAI):
         default_headers: Mapping[str, str] | None = None,
         default_query: Mapping[str, object] | None = None,
     ) -> None:
+        """Initialize a sync OCI-backed OpenAI-compatible client."""
         if service_endpoint is None:
             service_endpoint = resolve_default_service_endpoint(region, stage)
         super().__init__(
@@ -51,6 +56,8 @@ class OciOpenAI(OpenAI):
 
 
 class AsyncOciOpenAI(AsyncOpenAI):
+    """Async OpenAI client configured to talk to OCI Generative AI inference."""
+
     def __init__(
         self,
         *,
@@ -64,6 +71,7 @@ class AsyncOciOpenAI(AsyncOpenAI):
         default_headers: Mapping[str, str] | None = None,
         default_query: Mapping[str, object] | None = None,
     ) -> None:
+        """Initialize an async OCI-backed OpenAI-compatible client."""
         if service_endpoint is None:
             service_endpoint = resolve_default_service_endpoint(region, stage)
         super().__init__(
@@ -81,7 +89,10 @@ class AsyncOciOpenAI(AsyncOpenAI):
 
 
 class OCISessionAuth(httpx.Auth):
+    """Sign OCI inference requests with the local security-token session files."""
+
     def __init__(self, profile: str) -> None:
+        """Load the token and private key for a named local OCI session profile."""
         self.profile = profile
         self.token_path = Path.home() / ".oci" / "sessions" / profile / "token"
         self.key_path = Path.home() / ".oci" / "sessions" / profile / "oci_api_key.pem"
@@ -89,14 +100,17 @@ class OCISessionAuth(httpx.Auth):
         self.private_key = self._load_private_key()
 
     def _load_token(self) -> str:
+        """Read the short-lived OCI security token for the active session."""
         with open(self.token_path, "r", encoding="utf-8") as file:
             return file.read().strip()
 
     def _load_private_key(self) -> PrivateKeyTypes:
+        """Read the private key paired with the local OCI security token."""
         with open(self.key_path, "rb") as file:
             return serialization.load_pem_private_key(file.read(), password=None)
 
     def auth_flow(self, request: httpx.Request) -> Generator[httpx.Request, httpx.Response, None]:
+        """Attach OCI Signature Version 1 headers to each outgoing request."""
         method = request.method.lower()
         path = request.url.raw_path.decode("utf-8")
         host = request.url.host or ""
@@ -106,6 +120,8 @@ class OCISessionAuth(httpx.Auth):
         auth_data = f"(request-target): {method} {path}\nhost: {host}"
 
         if request.content:
+            # OCI requires body metadata headers to be included in both the
+            # request and the signed payload when a JSON body is present.
             content_length = str(len(request.content))
             content_type = "application/json"
             content_sha256 = base64.b64encode(hashlib.sha256(request.content).digest()).decode("utf-8")
@@ -138,6 +154,7 @@ class OCISessionAuth(httpx.Auth):
 
 
 def resolve_service_endpoint(region: str, stage: str) -> str:
+    """Map a deployment stage name to its OCI inference base URL."""
     if stage == "prod":
         return f"https://inference.generativeai.{region}.oci.oraclecloud.com"
     if stage == "dev":
@@ -148,4 +165,5 @@ def resolve_service_endpoint(region: str, stage: str) -> str:
 
 
 def resolve_default_service_endpoint(region: str, stage: str = "ppe") -> str:
+    """Resolve the default OCI inference endpoint for a region and stage."""
     return resolve_service_endpoint(region, stage)

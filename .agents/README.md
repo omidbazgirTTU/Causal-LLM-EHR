@@ -27,6 +27,7 @@ See `MODEL_SELECTION.md`.
 ## Document Map
 
 - `AGENTS.md`: global execution rules and hard constraints
+- `CODE_COMMENTING.md`: default docstring and commenting rules for touched code
 - `GIT_WORKFLOW.md`: default commit/push policy after completed tasks
 - `MODEL_SELECTION.md`: paper panel and development panel definitions
 - `routing.md`: workflow order and validation gates

@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+"""Smoke test a small OCI-hosted model panel with the current local credentials."""
 
 from __future__ import annotations
 
@@ -26,6 +27,8 @@ DEFAULT_MAX_COMPLETION_TOKENS = 128
 
 @dataclass
 class SmokeTestResult:
+    """Normalized result for a single model call in the OCI smoke test."""
+
     model: str
     ok: bool
     latency_seconds: float
@@ -34,6 +37,7 @@ class SmokeTestResult:
 
 
 def parse_args() -> argparse.Namespace:
+    """Parse CLI options for the OCI smoke-test runner."""
     parser = argparse.ArgumentParser(
         description="Smoke test OCI-hosted LLM APIs with the current local OCI credentials."
     )
@@ -63,6 +67,7 @@ def parse_args() -> argparse.Namespace:
 
 
 def resolve_models(cli_models: list[str] | None) -> list[str]:
+    """Resolve the model panel from CLI, env var, or repo defaults."""
     if cli_models:
         return cli_models
 
@@ -74,6 +79,7 @@ def resolve_models(cli_models: list[str] | None) -> list[str]:
 
 
 def build_client(timeout_seconds: float) -> tuple[OciOpenAI, dict[str, str | None]]:
+    """Create the OCI-backed OpenAI-compatible client used by the smoke test."""
     config = load_config()
     client = OciOpenAI(
         profile=config["profile"],
@@ -87,6 +93,7 @@ def build_client(timeout_seconds: float) -> tuple[OciOpenAI, dict[str, str | Non
 
 
 def build_messages(prompt: str) -> list[dict[str, str]]:
+    """Wrap the smoke-test prompt in the chat payload shape expected by the API."""
     return [{"role": "user", "content": prompt}]
 
 
@@ -95,6 +102,7 @@ def build_request_variants(
     messages: list[dict[str, str]],
     max_completion_tokens: int,
 ) -> list[dict[str, Any]]:
+    """Generate request variants that handle provider-specific token parameter differences."""
     base: dict[str, Any] = {
         "model": model,
         "messages": messages,
@@ -109,12 +117,15 @@ def build_request_variants(
     max_tokens_variant = dict(base)
     max_tokens_variant["max_tokens"] = max_completion_tokens
 
+    # OpenAI-hosted models on OCI expect `max_completion_tokens`, while several
+    # other model families still accept `max_tokens`.
     if model.startswith("openai."):
         return [max_completion_variant, max_tokens_variant]
     return [max_tokens_variant, max_completion_variant]
 
 
 def extract_text(response: Any) -> str:
+    """Extract a readable preview string across heterogeneous response formats."""
     message = response.choices[0].message
     content = getattr(message, "content", None)
 
@@ -135,6 +146,8 @@ def extract_text(response: Any) -> str:
         if text_parts:
             return " ".join(text_parts)
 
+    # Some reasoning models may produce no assistant text while still returning
+    # reasoning content, which is still useful for debugging the request path.
     reasoning_content = getattr(message, "reasoning_content", None)
     if isinstance(reasoning_content, str) and reasoning_content.strip():
         return f"[reasoning_only] {reasoning_content.strip()}"
@@ -147,6 +160,7 @@ def extract_text(response: Any) -> str:
 
 
 def short_preview(text: str, limit: int = 80) -> str:
+    """Collapse whitespace and truncate a model preview for console output."""
     normalized = " ".join(text.split())
     if len(normalized) <= limit:
         return normalized
@@ -159,6 +173,7 @@ def smoke_test_model(
     messages: list[dict[str, str]],
     max_completion_tokens: int,
 ) -> SmokeTestResult:
+    """Run one smoke test against a single model, retrying only request-shape mismatches."""
     last_error: Exception | None = None
     last_latency_seconds = 0.0
 
@@ -182,6 +197,8 @@ def smoke_test_model(
             last_error = exc
             last_latency_seconds = perf_counter() - start
             message = str(exc)
+            # Retry only when the model rejects a token-budget parameter that a
+            # different provider family still accepts.
             if "Unsupported parameter" in message or "not supported with this model" in message:
                 continue
             break
@@ -201,6 +218,7 @@ def smoke_test_model(
 
 
 def print_results(results: list[SmokeTestResult], config: dict[str, str | None]) -> None:
+    """Print a compact per-model console summary for the smoke test."""
     region = config.get("region") or "<missing>"
     stage = config.get("oci_stage") or "ppe"
     print(f"OCI smoke test against region={region} stage={stage}")
@@ -217,6 +235,7 @@ def print_results(results: list[SmokeTestResult], config: dict[str, str | None])
 
 
 def main() -> int:
+    """Run the configured OCI model panel and return a shell-friendly exit code."""
     args = parse_args()
     models = resolve_models(args.models)
     client, config = build_client(timeout_seconds=args.timeout)
@@ -233,6 +252,8 @@ def main() -> int:
             for model in models
         ]
     finally:
+        # Close the underlying httpx client so repeated local runs do not leak
+        # open connections in the Conda environment.
         close = getattr(client, "close", None)
         if callable(close):
             close()

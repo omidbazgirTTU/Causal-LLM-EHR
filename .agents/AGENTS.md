@@ -28,4 +28,5 @@
 - use the same downstream causal pipeline across Gold, all three selected model
   datasets, Synthetic, and reasoning datasets
 - compare `HR(X*)`, `HR(X̂)`, and when available `HR(X̃)`
+- follow `CODE_COMMENTING.md` for new or modified code
 - follow `GIT_WORKFLOW.md` after any completed task that changes tracked files

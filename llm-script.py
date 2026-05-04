@@ -1,4 +1,7 @@
+"""Simple OCI smoke test and agent wiring example for local development."""
+
 from pprint import pprint
+
 from agents import Agent, set_default_openai_api, set_default_openai_client, set_tracing_disabled
 
 from causal_llm.oci_support.config.openai_client_config import load_config
@@ -6,6 +9,7 @@ from causal_llm.oci_support.runtime.api_client import get_oci_async_openai_clien
 
 
 def smoke_test_chat() -> None:
+    """Send a basic chat request through the OCI-backed OpenAI-compatible client."""
     config = load_config()
     model_name = config.get("oci_model_name") or "openai.gpt-5.4"
     client = get_oci_openai_client()
@@ -21,6 +25,7 @@ def smoke_test_chat() -> None:
 
 
 def build_guardrail_agent() -> Agent:
+    """Construct a minimal local `agents` SDK object backed by OCI chat completions."""
     set_default_openai_client(get_oci_async_openai_client())
     set_tracing_disabled(True)  # Avoid the Tracing client error 401 in local runs.
     set_default_openai_api("chat_completions")
@@ -33,6 +38,7 @@ def build_guardrail_agent() -> Agent:
 
 
 def main() -> None:
+    """Run the local smoke test and verify agent construction does not fail."""
     smoke_test_chat()
     _ = build_guardrail_agent()
 

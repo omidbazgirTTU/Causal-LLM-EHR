@@ -1,3 +1,5 @@
+"""Load repo-local OCI client settings for local scripts and smoke tests."""
+
 import os
 from pathlib import Path
 
@@ -5,7 +7,7 @@ from dotenv import load_dotenv
 
 
 def load_config() -> dict[str, str | None]:
-    """Load OCI client configuration from the repo-local .env file."""
+    """Load OCI client configuration from the repo-local `.env` file."""
     load_dotenv(Path.cwd() / ".env")
 
     return {
