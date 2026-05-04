@@ -9,6 +9,17 @@ Research workspace for studying how LLM-induced measurement error affects downst
 - OCI-backed LLM smoke-test scripts
 - minimal local OCI client helpers for future development
 
+## Why DuckDB
+
+DuckDB is the default engine for the Phase 1 cohort build because the local
+MIMIC-IV snapshot is already large enough to justify an analytical SQL engine:
+the current `hosp` and `icu` exports are about 5.9 GB and 4.1 GB locally.
+DuckDB can query the compressed CSV files directly, express the cohort logic
+cleanly in SQL, and materialize reproducible local `.duckdb` and Parquet
+artifacts without requiring a separate database service.
+
+The longer rationale is documented in `.agents/IMPLEMENTATION_DECISIONS.md`.
+
 ## Repository Safety
 
 - raw EHR data is intentionally excluded from git

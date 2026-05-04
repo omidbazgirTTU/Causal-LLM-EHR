@@ -29,6 +29,7 @@ See `MODEL_SELECTION.md`.
 - `AGENTS.md`: global execution rules and hard constraints
 - `CODE_COMMENTING.md`: default docstring and commenting rules for touched code
 - `GIT_WORKFLOW.md`: default commit/push policy after completed tasks
+- `IMPLEMENTATION_DECISIONS.md`: rationale for major implementation choices
 - `MODEL_SELECTION.md`: paper panel and development panel definitions
 - `SEMANTIC_LLM_POLICY.md`: semantic-first modeling rule for implementation
 - `routing.md`: workflow order and validation gates
