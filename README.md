@@ -25,5 +25,5 @@ Research workspace for studying how LLM-induced measurement error affects downst
 
 - `llm-script.py`
 - `requirements.txt`
-- `oracle_rwd_research_bundle/`
+- `.agents/`
 - `EVALUATION_CHECKLIST.md`

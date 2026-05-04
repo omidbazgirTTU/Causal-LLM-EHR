@@ -1,10 +1,43 @@
 # Agents Overview
 
-Agents:
-- note_extraction → measurement
-- reasoning → interpretation (controlled)
-- evaluation → error quantification
-- causal_analysis → robustness
-- reporting → audit + summaries
+`.agents/` is the source of truth for the study design, execution rules, and
+phase-specific instructions in this repository.
 
-LLMs are noisy measurement functions.
+## Goal
+
+Quantify how LLM-induced measurement error affects causal inference in
+healthcare data.
+
+## Core Idea
+
+- `X*` = gold / true variable
+- `X̂_m` = extracted variable from model `m`
+- `X̃_m` = reasoning-based variable from model `m`
+- `Bias(HR_m) = HR(X̂_m) - HR(X*)`
+
+LLMs are treated as noisy measurement functions.
+
+## Models
+
+- Model A
+- Model B
+- Qwen
+
+## Document Map
+
+- `AGENTS.md`: global execution rules and hard constraints
+- `routing.md`: workflow order and validation gates
+- `PROBLEM.md`: formal causal question
+- `COHORT_AND_SCHEMA.md`: cohort definition and observation window
+- `NOTE_EXTRACTION_PLAN.md`: extraction schema and model constraints
+- `CAUSAL_PLAN.md`: datasets, estimands, and robustness outputs
+- `TASKS.md`: phase breakdown
+- `*/AGENTS.md`: phase-specific agent rules
+
+## Agent Roles
+
+- `note_extraction` -> measurement
+- `reasoning` -> controlled interpretation
+- `evaluation` -> error quantification
+- `causal_analysis` -> robustness and HR estimation
+- `reporting` -> audit and summaries

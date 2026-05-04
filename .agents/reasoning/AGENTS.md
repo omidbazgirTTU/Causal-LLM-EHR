@@ -6,6 +6,7 @@ Generate reasoning-based variables (X̃)
 ## Rules
 - no future data
 - no outcomes
+- only pre-decision data
 - structured output only
 - identical prompts across models
 

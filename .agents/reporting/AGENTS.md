@@ -4,7 +4,7 @@
 Generate structured summary reports after each phase
 
 ## Output Path
-/reports/<phase>/<timestamp>_<phase>_report.md
+reports/<phase>/<timestamp>_<phase>_report.md
 
 ## Format
 
