@@ -11,6 +11,7 @@ healthcare data.
 ## Core Idea
 
 - `X*` = gold / true variable
+- `X_rule` = deterministic rule-based baseline measurement
 - `X̂_m` = extracted variable from model `m`
 - `X̃_m` = reasoning-based variable from model `m`
 - `Bias(HR_m) = HR(X̂_m) - HR(X*)`
@@ -39,6 +40,7 @@ See `MODEL_SELECTION.md`.
 - `NOTE_EXTRACTION_PLAN.md`: extraction schema and model constraints
 - `CAUSAL_PLAN.md`: datasets, estimands, and robustness outputs
 - `TASKS.md`: phase breakdown
+- `rule_based_annotator/AGENTS.md`: deterministic baseline measurement rules
 - `*/AGENTS.md`: phase-specific agent rules
 
 ## Agent Roles

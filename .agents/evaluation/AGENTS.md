@@ -15,3 +15,4 @@ Compare X̂ and X* and quantify error
 - no modification of inputs
 - fail on mismatch
 - compare all models against the same gold set
+- evaluate `X_rule` as a deterministic baseline against the same gold set

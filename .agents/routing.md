@@ -16,6 +16,7 @@
 ## Models
 
 Use the selected panel defined in `MODEL_SELECTION.md`.
+- Rule-based annotator (deterministic)
 
 ## Rules
 - NEVER skip filtering
@@ -27,3 +28,4 @@ Use the selected panel defined in `MODEL_SELECTION.md`.
 - STOP on any validation failure
 - ALWAYS compare models on the same notes
 - ALWAYS use the same downstream causal pipeline across datasets
+- Use the rule-based annotator as the reference baseline, not ground truth

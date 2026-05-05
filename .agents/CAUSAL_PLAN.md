@@ -3,6 +3,7 @@
 ## Datasets
 
 - Gold
+- Rule-based baseline (`X_rule`)
 - Model 1 (`MODEL_SELECTION.md`)
 - Model 2 (`MODEL_SELECTION.md`)
 - Model 3 (`MODEL_SELECTION.md`)
@@ -18,6 +19,7 @@
 ## Outputs
 
 - `HR(X*)`
+- `HR(X_rule)`
 - `HR(X̂)`
 - `HR(X̃)`
 - confidence intervals
