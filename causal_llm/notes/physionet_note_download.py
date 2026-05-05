@@ -22,6 +22,7 @@ DEFAULT_OUTPUT_DIR = Path("derived_data/notes")
 DEFAULT_REPORT_DIR = Path("reports/notes")
 DEFAULT_DATASET_SLUG = "mimic-iv-note"
 DEFAULT_DATASET_VERSION = "2.2"
+DEFAULT_NOTE_SUBDIRECTORY = "note"
 DEFAULT_TIMEOUT_SECONDS = 60.0
 DEFAULT_NOTE_FILES = (
     "discharge.csv.gz",
@@ -32,7 +33,10 @@ DEFAULT_NOTE_FILES = (
 
 LOGIN_URL = "https://physionet.org/login/"
 CONTENT_URL_TEMPLATE = "https://physionet.org/content/{dataset_slug}/{dataset_version}/"
-FILE_URL_TEMPLATE = "https://physionet.org/files/{dataset_slug}/{dataset_version}/{filename}"
+FILE_URL_TEMPLATE = (
+    "https://physionet.org/files/{dataset_slug}/{dataset_version}/"
+    "{note_subdirectory}/{filename}"
+)
 SIGN_DUA_URL_TEMPLATE = "https://physionet.org/sign-dua/{dataset_slug}/{dataset_version}/"
 USER_AGENT = "Causal-LLM-EHR/1.0"
 
@@ -441,7 +445,14 @@ def run_note_download(config: PhysioNetNoteDownloadConfig) -> PhysioNetNoteDownl
         f"{generated_at.strftime('%Y%m%dT%H%M%SZ')}_mimic_iv_note_download_report.md"
     )
     summary_json_path = config.output_dir / "mimic_iv_note_download_summary.json"
-    dataset_root = config.files_root / config.dataset_slug / config.dataset_version
+    # PhysioNet exposes the MIMIC-IV-Note tables under a nested `note/`
+    # directory for v2.2, so the local mirror follows that layout.
+    dataset_root = (
+        config.files_root
+        / config.dataset_slug
+        / config.dataset_version
+        / DEFAULT_NOTE_SUBDIRECTORY
+    )
     content_page_url = CONTENT_URL_TEMPLATE.format(
         dataset_slug=config.dataset_slug,
         dataset_version=config.dataset_version,
@@ -482,6 +493,7 @@ def run_note_download(config: PhysioNetNoteDownloadConfig) -> PhysioNetNoteDownl
                 file_url = FILE_URL_TEMPLATE.format(
                     dataset_slug=config.dataset_slug,
                     dataset_version=config.dataset_version,
+                    note_subdirectory=DEFAULT_NOTE_SUBDIRECTORY,
                     filename=filename,
                 )
                 file_results.append(
