@@ -6,6 +6,7 @@ Research workspace for studying how LLM-induced measurement error affects downst
 
 - cohort and study design documentation
 - Phase 1 ICU cohort builder backed by DuckDB
+- PhysioNet MIMIC-IV-Note download helper with restricted-access checks
 - Phase 2 annotation task preparation, reviewer assignment, and gold-label finalization
 - deterministic rule-based baseline (`X_rule`) from structured MIMIC-IV tables
 - OCI-backed LLM smoke-test scripts
@@ -37,15 +38,17 @@ The longer rationale is documented in `.agents/IMPLEMENTATION_DECISIONS.md`.
 5. Run `python oci_model_panel_smoke_test.py`.
 6. Run `python build_initial_cohort.py`.
 7. Run `python build_rule_based_baseline.py`.
-8. Run `python audit_note_sources.py`.
-9. Run `python prepare_gold_annotations.py --notes-parquet <linked_notes.parquet>` once note data is available.
-10. Run `python assign_gold_annotations.py --reviewers reviewer_1 reviewer_2 reviewer_3`.
-11. After reviewers finish, run `python finalize_gold_annotations.py --annotation-csv <reviewer_1.csv> --annotation-csv <reviewer_2.csv>`.
+8. Run `python download_mimic_iv_note.py`.
+9. Run `python audit_note_sources.py`.
+10. If the note audit approves a note source for gold labels, run `python prepare_gold_annotations.py --notes-parquet <linked_notes.parquet>`.
+11. Run `python assign_gold_annotations.py --reviewers reviewer_1 reviewer_2 reviewer_3`.
+12. After reviewers finish, run `python finalize_gold_annotations.py --annotation-csv <reviewer_1.csv> --annotation-csv <reviewer_2.csv>`.
 
 ## Key Files
 
 - `llm-script.py`
 - `build_initial_cohort.py`
+- `download_mimic_iv_note.py`
 - `audit_note_sources.py`
 - `build_rule_based_baseline.py`
 - `prepare_gold_annotations.py`

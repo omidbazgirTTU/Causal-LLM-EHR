@@ -34,6 +34,7 @@ See `MODEL_SELECTION.md`.
 - `IMPLEMENTATION_DECISIONS.md`: rationale for major implementation choices
 - `MODEL_SELECTION.md`: paper panel and development panel definitions
 - `SEMANTIC_LLM_POLICY.md`: semantic-first modeling rule for implementation
+- `ANNOTATION_WORKFLOW.md`: includes the note-download and note-domain gating rules
 - `routing.md`: workflow order and validation gates
 - `PROBLEM.md`: formal causal question
 - `COHORT_AND_SCHEMA.md`: cohort definition and observation window

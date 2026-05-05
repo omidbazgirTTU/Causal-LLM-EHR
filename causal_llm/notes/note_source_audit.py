@@ -23,6 +23,10 @@ EXPECTED_NOTE_FILES = {
     "radiology": "radiology.csv.gz",
     "radiology_detail": "radiology_detail.csv.gz",
 }
+RADIOLOGY_PARQUET_NAME = "radiology_notes_sampled_window.parquet"
+DISCHARGE_PARQUET_NAME = "discharge_notes_sampled_linked.parquet"
+NOTE_DOMAIN_MANIFEST_NAME = "note_domain_manifest.json"
+NOTE_DOWNLOAD_SUMMARY_NAME = "mimic_iv_note_download_summary.json"
 
 REQUIRED_RADIOLOGY_COLUMNS = {"subject_id", "hadm_id", "charttime", "text"}
 REQUIRED_DISCHARGE_COLUMNS = {"subject_id", "hadm_id", "charttime", "text"}
@@ -49,6 +53,18 @@ class NoteFileInfo:
 
 
 @dataclass(frozen=True)
+class NoteDomainPolicy:
+    """Manifest entry describing how one discovered note domain may be used."""
+
+    domain: str
+    parquet_path: str | None
+    usage_policy: str
+    allowed_for_gold_annotations: bool
+    allowed_for_primary_extraction: bool
+    reason: str
+
+
+@dataclass(frozen=True)
 class NoteAuditSummary:
     """Summary artifact describing available note sources and cohort linkage."""
 
@@ -64,7 +80,12 @@ class NoteAuditSummary:
     discharge_candidate_note_count: int
     discharge_sampled_note_count: int
     discharge_sampled_stay_count: int
+    latest_download_attempt_status: str | None
+    latest_download_attempt_reason: str | None
+    primary_extraction_ready: bool
+    primary_extraction_reason: str
     recommendation: str
+    note_domain_manifest_path: str
     report_path: str
 
 
@@ -300,10 +321,23 @@ def distinct_stays_if_exists(connection: duckdb.DuckDBPyConnection, table_name: 
     return connection.execute(f"SELECT COUNT(DISTINCT stay_id) FROM {table_name}").fetchone()[0]
 
 
-def determine_recommendation(note_files: dict[str, Path]) -> str:
+def determine_recommendation(
+    note_files: dict[str, Path],
+    download_attempt_summary: dict[str, object] | None,
+) -> str:
     """Produce a human-readable next-step recommendation from the note audit."""
 
     if not note_files:
+        if download_attempt_summary is not None:
+            access_gate_reason = str(download_attempt_summary.get("access_gate_reason") or "").strip()
+            login_ok = bool(download_attempt_summary.get("login_ok"))
+            if login_ok and access_gate_reason:
+                return (
+                    "MIMIC-IV-Note download is still blocked: "
+                    f"{access_gate_reason}. Resolve the restriction or provide another "
+                    "local note source before implementing note extraction."
+                )
+
         return (
             "Download MIMIC-IV-Note or provide another local note source before "
             "implementing note extraction. The current cohort step is complete, "
@@ -324,16 +358,103 @@ def determine_recommendation(note_files: dict[str, Path]) -> str:
     )
 
 
+def determine_primary_extraction_status(note_files: dict[str, Path]) -> tuple[bool, str]:
+    """State whether the current local note sources satisfy the intended study design."""
+
+    if not note_files:
+        return (
+            False,
+            "No local note dataset was discovered under the PhysioNet files root.",
+        )
+
+    return (
+        False,
+        "The open local note sources do not include physician or nursing notes. "
+        "Radiology may be audited as a secondary domain, and discharge summaries "
+        "are audit-only, but neither is approved for the primary pre-decision "
+        "extraction workflow.",
+    )
+
+
+def build_note_domain_policies(config: NoteAuditConfig, note_files: dict[str, Path]) -> list[NoteDomainPolicy]:
+    """Build a machine-readable note-domain manifest for downstream gating."""
+
+    policies: list[NoteDomainPolicy] = []
+
+    if "radiology" in note_files:
+        policies.append(
+            NoteDomainPolicy(
+                domain="radiology",
+                parquet_path=str(config.output_dir / RADIOLOGY_PARQUET_NAME),
+                usage_policy="secondary_only",
+                allowed_for_gold_annotations=False,
+                allowed_for_primary_extraction=False,
+                reason=(
+                    "Radiology reports are the only pre-decision note domain exposed by the "
+                    "open MIMIC-IV-Note release, but they are not the intended physician or "
+                    "nursing source and should not be silently substituted into the main workflow."
+                ),
+            )
+        )
+
+    if "discharge" in note_files:
+        policies.append(
+            NoteDomainPolicy(
+                domain="discharge",
+                parquet_path=str(config.output_dir / DISCHARGE_PARQUET_NAME),
+                usage_policy="audit_only",
+                allowed_for_gold_annotations=False,
+                allowed_for_primary_extraction=False,
+                reason=(
+                    "Discharge summaries describe the hospital course after the fact and violate "
+                    "the pre-decision note rule for gold labels and extraction."
+                ),
+            )
+        )
+
+    return policies
+
+
+def load_download_attempt_summary(output_dir: Path) -> dict[str, object] | None:
+    """Load the latest downloader summary when it exists."""
+
+    summary_path = output_dir / NOTE_DOWNLOAD_SUMMARY_NAME
+    if not summary_path.exists():
+        return None
+
+    with open(summary_path, "r", encoding="utf-8") as file:
+        return json.load(file)
+
+
+def summarize_download_attempt(download_attempt_summary: dict[str, object] | None) -> tuple[str | None, str | None]:
+    """Normalize the latest downloader status for the audit summary."""
+
+    if download_attempt_summary is None:
+        return None, None
+    if bool(download_attempt_summary.get("all_requested_files_ready")):
+        return "ready", None
+
+    reason = str(download_attempt_summary.get("access_gate_reason") or "").strip() or None
+    if bool(download_attempt_summary.get("login_ok")):
+        return "blocked", reason
+    return "login_failed", reason
+
+
 def collect_summary(
     connection: duckdb.DuckDBPyConnection,
     config: NoteAuditConfig,
     note_files: dict[str, Path],
     file_info: dict[str, NoteFileInfo],
+    download_attempt_summary: dict[str, object] | None,
     report_path: Path,
 ) -> NoteAuditSummary:
     """Assemble the note-audit summary for JSON and markdown export."""
 
     note_status = "missing" if not note_files else "available_but_design_review_required"
+    latest_download_attempt_status, latest_download_attempt_reason = summarize_download_attempt(
+        download_attempt_summary
+    )
+    primary_extraction_ready, primary_extraction_reason = determine_primary_extraction_status(note_files)
     return NoteAuditSummary(
         generated_at_utc=datetime.now(timezone.utc).isoformat(),
         files_root=str(config.files_root),
@@ -347,7 +468,12 @@ def collect_summary(
         discharge_candidate_note_count=count_if_exists(connection, "discharge_notes_candidate_linked"),
         discharge_sampled_note_count=count_if_exists(connection, "discharge_notes_sampled_linked"),
         discharge_sampled_stay_count=distinct_stays_if_exists(connection, "discharge_notes_sampled_linked"),
-        recommendation=determine_recommendation(note_files),
+        latest_download_attempt_status=latest_download_attempt_status,
+        latest_download_attempt_reason=latest_download_attempt_reason,
+        primary_extraction_ready=primary_extraction_ready,
+        primary_extraction_reason=primary_extraction_reason,
+        recommendation=determine_recommendation(note_files, download_attempt_summary),
+        note_domain_manifest_path=str(config.output_dir / NOTE_DOMAIN_MANIFEST_NAME),
         report_path=str(report_path),
     )
 
@@ -379,6 +505,7 @@ def write_outputs(
     config: NoteAuditConfig,
     summary: NoteAuditSummary,
     report_path: Path,
+    note_files: dict[str, Path],
 ) -> None:
     """Persist the note-audit summary and any usable linked-note extracts."""
 
@@ -388,17 +515,27 @@ def write_outputs(
     export_parquet_if_exists(
         connection,
         "radiology_notes_sampled_window",
-        config.output_dir / "radiology_notes_sampled_window.parquet",
+        config.output_dir / RADIOLOGY_PARQUET_NAME,
     )
     export_parquet_if_exists(
         connection,
         "discharge_notes_sampled_linked",
-        config.output_dir / "discharge_notes_sampled_linked.parquet",
+        config.output_dir / DISCHARGE_PARQUET_NAME,
     )
 
     summary_json_path = config.output_dir / "note_source_audit_summary.json"
     with open(summary_json_path, "w", encoding="utf-8") as file:
         json.dump(asdict(summary), file, indent=2)
+
+    note_domain_manifest_path = config.output_dir / NOTE_DOMAIN_MANIFEST_NAME
+    note_domain_manifest = {
+        "generated_at_utc": summary.generated_at_utc,
+        "primary_extraction_ready": summary.primary_extraction_ready,
+        "primary_extraction_reason": summary.primary_extraction_reason,
+        "domains": [asdict(policy) for policy in build_note_domain_policies(config, note_files)],
+    }
+    with open(note_domain_manifest_path, "w", encoding="utf-8") as file:
+        json.dump(note_domain_manifest, file, indent=2)
 
     note_domains = ", ".join(summary.available_note_domains) if summary.available_note_domains else "none"
     report_lines = [
@@ -412,6 +549,10 @@ def write_outputs(
         "## Availability",
         f"- note_dataset_status: {summary.note_dataset_status}",
         f"- available_note_domains: {note_domains}",
+        f"- latest_download_attempt_status: {summary.latest_download_attempt_status or 'none'}",
+        f"- latest_download_attempt_reason: {summary.latest_download_attempt_reason or 'none'}",
+        f"- primary_extraction_ready: {summary.primary_extraction_ready}",
+        f"- primary_extraction_reason: {summary.primary_extraction_reason}",
         "",
         "## Cohort Linkage",
         f"- radiology_candidate_note_count: {summary.radiology_candidate_note_count}",
@@ -426,6 +567,7 @@ def write_outputs(
         "",
         "## Outputs",
         f"- `{summary_json_path}`",
+        f"- `{note_domain_manifest_path}`",
         f"- `{report_path}`",
     ]
     with open(report_path, "w", encoding="utf-8") as file:
@@ -440,14 +582,22 @@ def run_audit(config: NoteAuditConfig) -> NoteAuditSummary:
     config.report_dir.mkdir(parents=True, exist_ok=True)
 
     note_files = discover_note_files(config.files_root)
+    download_attempt_summary = load_download_attempt_summary(config.output_dir)
     report_path = config.report_dir / f"{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')}_note_audit_report.md"
 
     connection = duckdb.connect(str(config.cohort_duckdb_path))
     try:
         file_info = initialize_note_views(connection, note_files)
         materialize_note_tables(connection, file_info)
-        summary = collect_summary(connection, config, note_files, file_info, report_path)
-        write_outputs(connection, config, summary, report_path)
+        summary = collect_summary(
+            connection,
+            config,
+            note_files,
+            file_info,
+            download_attempt_summary,
+            report_path,
+        )
+        write_outputs(connection, config, summary, report_path, note_files)
         return summary
     finally:
         connection.close()
@@ -462,7 +612,9 @@ def main() -> int:
     print("Note source audit completed.")
     print(f"Note dataset status: {summary.note_dataset_status}")
     print(f"Available note domains: {', '.join(summary.available_note_domains) or 'none'}")
+    print(f"Primary extraction ready: {summary.primary_extraction_ready}")
     print(f"Recommendation: {summary.recommendation}")
+    print(f"Note manifest: {summary.note_domain_manifest_path}")
     print(f"Report: {summary.report_path}")
     return 0
 
