@@ -269,7 +269,7 @@ def parse_rule_based_rows(path: Path, gold_rows_by_task_id: dict[str, dict[str, 
     """Load the X_rule baseline rows keyed by task_id via shared stay_id."""
 
     task_id_by_stay_id = {
-        row["stay_id"]: task_id
+        str(row["stay_id"]).strip(): task_id
         for task_id, row in gold_rows_by_task_id.items()
     }
     rows_by_task_id: dict[str, dict[str, Any]] = {}

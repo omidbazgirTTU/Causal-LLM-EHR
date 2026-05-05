@@ -11,6 +11,7 @@ Research workspace for studying how LLM-induced measurement error affects downst
 - deterministic rule-based baseline (`X_rule`) from structured MIMIC-IV tables
 - Phase 3 OCI-backed three-model extraction runner with fixed output artifacts
 - Phase 4 extraction-vs-gold evaluation with `X_rule` baseline comparison
+- Phase 5 matched analysis-dataset builder for gold, `X_rule`, and all models
 - OCI-backed LLM smoke-test scripts
 - minimal local OCI client helpers for future development
 
@@ -47,6 +48,7 @@ The longer rationale is documented in `.agents/IMPLEMENTATION_DECISIONS.md`.
 12. After reviewers finish, run `python finalize_gold_annotations.py --annotation-csv <reviewer_1.csv> --annotation-csv <reviewer_2.csv>`.
 13. Run `python run_llm_extraction.py` after gold-label finalization.
 14. Run `python evaluate_llm_extraction.py` to compare all three model outputs and `X_rule` against the same gold set.
+15. Run `python build_analysis_datasets.py` to derive matched treatment/outcome datasets for Gold, `X_rule`, and all three model outputs.
 
 ## Phase 3 And 4
 
@@ -63,6 +65,18 @@ The longer rationale is documented in `.agents/IMPLEMENTATION_DECISIONS.md`.
 - evaluation fails if the extraction outputs or `X_rule` rows do not line up with
   the gold-label task set
 
+## Phase 5
+
+- `python build_analysis_datasets.py` joins Gold, `X_rule`, and all extracted
+  model outputs to the same sampled cohort and derives downstream treatment and
+  outcome fields
+- the builder emits one CSV per predictor plus a summary CSV, manifest JSON, and
+  phase report under `derived_data/analysis` and `reports/analysis`
+- treatment timing is derived relative to predictor-specific `suspicion_time`
+  using a configurable early-treatment window
+- the builder fails on alignment problems, invalid predictor rows, and
+  `suspicion_time` values that fall outside the audited study window
+
 ## Key Files
 
 - `llm-script.py`
@@ -75,6 +89,7 @@ The longer rationale is documented in `.agents/IMPLEMENTATION_DECISIONS.md`.
 - `finalize_gold_annotations.py`
 - `run_llm_extraction.py`
 - `evaluate_llm_extraction.py`
+- `build_analysis_datasets.py`
 - `oci_model_panel_smoke_test.py`
 - `requirements.txt`
 - `.agents/`
