@@ -11,6 +11,7 @@ Research workspace for studying how LLM-induced measurement error affects downst
 - deterministic rule-based baseline (`X_rule`) from structured MIMIC-IV tables
 - Phase 3 OCI-backed three-model extraction runner with fixed output artifacts
 - Phase 4 extraction-vs-gold evaluation with `X_rule` baseline comparison
+- Phase 4b synthetic time-shift perturbation generator for robustness checks
 - Phase 5 matched analysis-dataset builder for gold, `X_rule`, and all models
 - OCI-backed LLM smoke-test scripts
 - minimal local OCI client helpers for future development
@@ -49,6 +50,7 @@ The longer rationale is documented in `.agents/IMPLEMENTATION_DECISIONS.md`.
 13. Run `python run_llm_extraction.py` after gold-label finalization.
 14. Run `python evaluate_llm_extraction.py` to compare all three model outputs and `X_rule` against the same gold set.
 15. Run `python build_analysis_datasets.py` to derive matched treatment/outcome datasets for Gold, `X_rule`, and all three model outputs.
+16. Run `python generate_time_perturbations.py` to materialize synthetic shifted-time datasets for robustness analyses.
 
 ## Phase 3 And 4
 
@@ -77,6 +79,15 @@ The longer rationale is documented in `.agents/IMPLEMENTATION_DECISIONS.md`.
 - the builder fails on alignment problems, invalid predictor rows, and
   `suspicion_time` values that fall outside the audited study window
 
+## Phase 4b
+
+- `python generate_time_perturbations.py` reads the analysis-dataset manifest and
+  generates synthetic datasets with signed hour shifts applied to `suspicion_time`
+- the default perturbation set is `-3`, `-2`, `-1`, `+1`, `+2`, and `+3` hours
+  on the Gold dataset
+- each shifted dataset recomputes treatment timing, 28-day mortality follow-up,
+  and analysis eligibility without changing the underlying cohort rows
+
 ## Key Files
 
 - `llm-script.py`
@@ -90,6 +101,7 @@ The longer rationale is documented in `.agents/IMPLEMENTATION_DECISIONS.md`.
 - `run_llm_extraction.py`
 - `evaluate_llm_extraction.py`
 - `build_analysis_datasets.py`
+- `generate_time_perturbations.py`
 - `oci_model_panel_smoke_test.py`
 - `requirements.txt`
 - `.agents/`
