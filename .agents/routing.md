@@ -25,6 +25,8 @@ Use the selected panel defined in `MODEL_SELECTION.md`.
 - NEVER change prompts across models
 - NEVER tune after causal results
 - ALWAYS generate report after each phase
+- ALWAYS generate a machine-readable progress log after each substantive phase run
+- ALWAYS use publication-grade figure styling for paper-facing result figures
 - STOP on any validation failure
 - ALWAYS compare models on the same notes
 - ALWAYS use the same downstream causal pipeline across datasets

@@ -9,7 +9,8 @@
 6. Build analysis datasets.
 7. Run causal models.
 8. Compare hazard ratios and robustness across datasets.
-9. Generate a report after each phase.
+9. Generate a report and progress log after each phase.
+10. Generate publication-grade figures for comparison-ready results.
 
 ## Do Not
 
@@ -32,4 +33,6 @@
 - compare `HR(X*)`, `HR(X̂)`, and when available `HR(X̃)`
 - follow `CODE_COMMENTING.md` for new or modified code
 - follow `GIT_WORKFLOW.md` after any completed task that changes tracked files
+- follow `PUBLICATION_FIGURES.md` when producing figures for results
+- follow `PROGRESS_LOGGING.md` when producing reports or saved outputs
 - follow `SEMANTIC_LLM_POLICY.md` for pipeline and code design decisions

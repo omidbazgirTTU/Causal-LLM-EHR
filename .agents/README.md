@@ -33,6 +33,8 @@ See `MODEL_SELECTION.md`.
 - `GIT_WORKFLOW.md`: default commit/push policy after completed tasks
 - `IMPLEMENTATION_DECISIONS.md`: rationale for major implementation choices
 - `MODEL_SELECTION.md`: paper panel and development panel definitions
+- `PUBLICATION_FIGURES.md`: figure-quality rules for paper-ready plots and figure bundles
+- `PROGRESS_LOGGING.md`: machine-readable run-log policy for progress and publication support
 - `SEMANTIC_LLM_POLICY.md`: semantic-first modeling rule for implementation
 - `ANNOTATION_WORKFLOW.md`: includes the note-download and note-domain gating rules
 - `routing.md`: workflow order and validation gates
@@ -52,4 +54,4 @@ See `MODEL_SELECTION.md`.
 - `reasoning` -> controlled interpretation
 - `evaluation` -> error quantification
 - `causal_analysis` -> robustness and HR estimation
-- `reporting` -> audit and summaries
+- `reporting` -> audit, progress logs, and publication figures
