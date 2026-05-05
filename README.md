@@ -13,6 +13,7 @@ Research workspace for studying how LLM-induced measurement error affects downst
 - Phase 4 extraction-vs-gold evaluation with `X_rule` baseline comparison
 - Phase 4b synthetic time-shift perturbation generator for robustness checks
 - Phase 5 matched analysis-dataset builder for gold, `X_rule`, and all models
+- Phase 6 pre-specified propensity-weighted causal analysis with robustness and sensitivity outputs
 - OCI-backed LLM smoke-test scripts
 - minimal local OCI client helpers for future development
 
@@ -51,6 +52,7 @@ The longer rationale is documented in `.agents/IMPLEMENTATION_DECISIONS.md`.
 14. Run `python evaluate_llm_extraction.py` to compare all three model outputs and `X_rule` against the same gold set.
 15. Run `python build_analysis_datasets.py` to derive matched treatment/outcome datasets for Gold, `X_rule`, and all three model outputs.
 16. Run `python generate_time_perturbations.py` to materialize synthetic shifted-time datasets for robustness analyses.
+17. Run `python run_causal_analysis.py` to estimate the fixed IPTW Cox models across Gold, `X_rule`, all model datasets, and synthetic perturbations.
 
 ## Phase 3 And 4
 
@@ -88,6 +90,21 @@ The longer rationale is documented in `.agents/IMPLEMENTATION_DECISIONS.md`.
 - each shifted dataset recomputes treatment timing, 28-day mortality follow-up,
   and analysis eligibility without changing the underlying cohort rows
 
+## Phase 6
+
+- `python run_causal_analysis.py` applies the fixed causal contract defined in
+  `.agents/causal_analysis/AGENTS.md`
+- the pipeline derives the same strictly pre-`t0` covariates for every dataset
+  from the raw structured MIMIC-IV tables, fits one shared L2-regularized
+  propensity model specification, then estimates weighted Cox hazard ratios for
+  the primary IPTW analysis plus the required sensitivity analyses
+- outputs include per-dataset detail CSVs, weighted survival curves, a summary
+  CSV/JSON bundle, robustness metrics, and a markdown report under
+  `derived_data/causal_analysis` and `reports/causal_analysis`
+- the run fails on schema mismatches, missing required covariates, non-positive
+  follow-up, no treatment or outcome variation, model convergence failures, and
+  extreme truncated weights
+
 ## Key Files
 
 - `llm-script.py`
@@ -102,6 +119,7 @@ The longer rationale is documented in `.agents/IMPLEMENTATION_DECISIONS.md`.
 - `evaluate_llm_extraction.py`
 - `build_analysis_datasets.py`
 - `generate_time_perturbations.py`
+- `run_causal_analysis.py`
 - `oci_model_panel_smoke_test.py`
 - `requirements.txt`
 - `.agents/`

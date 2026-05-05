@@ -43,6 +43,30 @@ Revisit this choice only if a later phase requires a distributed execution
 engine or if the local workflow becomes bottlenecked in a way DuckDB cannot
 handle cleanly.
 
+## Why The Causal Pipeline Uses A Charlson-Equivalent Proxy
+
+The Phase 6 causal contract requires a pre-`t0` comorbidity term such as
+Charlson or an equivalent baseline burden measure. The current implementation
+uses `prior_diagnosis_root_count` from prior admissions only.
+
+- current-admission ICD coding is not a safe default for pre-`t0` adjustment
+  because diagnosis assignment can happen after the sepsis suspicion time
+- a prior-admission diagnosis burden keeps the covariate strictly pre-treatment
+  across Gold, `X_rule`, and all model-derived datasets
+- this proxy is treated as a Charlson-equivalent placeholder until an audited,
+  reproducible pre-`t0` Charlson implementation is available in the local
+  environment
+
+## Why DuckDB Is Also Used For Phase 6 Covariate Derivation
+
+- the same local MIMIC-IV structured tables already support the cohort builder,
+  so reusing DuckDB avoids moving large filtered extracts back and forth between
+  multiple engines
+- the Phase 6 covariates are mostly time-bounded joins and last-value queries,
+  which are easier to audit as SQL than as ad hoc pandas loops
+- keeping covariate derivation inside the causal pipeline makes the fixed
+  pre-`t0` contract easier to reproduce across all measurement datasets
+
 ## MIMIC-IV-Note Scope And Note-Source Audit
 
 The open MIMIC-IV-Note module is not assumed to satisfy the intended
