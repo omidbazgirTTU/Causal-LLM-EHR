@@ -9,6 +9,8 @@ Research workspace for studying how LLM-induced measurement error affects downst
 - PhysioNet MIMIC-IV-Note download helper with restricted-access checks
 - Phase 2 annotation task preparation, reviewer assignment, and gold-label finalization
 - deterministic rule-based baseline (`X_rule`) from structured MIMIC-IV tables
+- Phase 3 OCI-backed three-model extraction runner with fixed output artifacts
+- Phase 4 extraction-vs-gold evaluation with `X_rule` baseline comparison
 - OCI-backed LLM smoke-test scripts
 - minimal local OCI client helpers for future development
 
@@ -43,6 +45,23 @@ The longer rationale is documented in `.agents/IMPLEMENTATION_DECISIONS.md`.
 10. If the note audit approves a note source for gold labels, run `python prepare_gold_annotations.py --notes-parquet <linked_notes.parquet>`.
 11. Run `python assign_gold_annotations.py --reviewers reviewer_1 reviewer_2 reviewer_3`.
 12. After reviewers finish, run `python finalize_gold_annotations.py --annotation-csv <reviewer_1.csv> --annotation-csv <reviewer_2.csv>`.
+13. Run `python run_llm_extraction.py` after gold-label finalization.
+14. Run `python evaluate_llm_extraction.py` to compare all three model outputs and `X_rule` against the same gold set.
+
+## Phase 3 And 4
+
+- `python run_llm_extraction.py` reads finalized `gold_label_tasks.jsonl`, loads the
+  selected model panel from `.agents/MODEL_SELECTION.md`, and writes
+  `extracted_model_1.json`, `extracted_model_2.json`, `extracted_model_3.json`,
+  per-model CSVs, and `extraction_run_manifest.json`.
+- use `--model-panel dev` only for OCI plumbing checks and smoke tests
+- keep `--model-panel paper` for the matched-scale paper panel after the imported
+  OCI endpoints are provisioned
+- `python evaluate_llm_extraction.py` compares every extraction output against
+  finalized `gold_labels.csv` and evaluates `derived_data/rule_based/rule_labels.csv`
+  as the deterministic `X_rule` baseline
+- evaluation fails if the extraction outputs or `X_rule` rows do not line up with
+  the gold-label task set
 
 ## Key Files
 
@@ -54,6 +73,8 @@ The longer rationale is documented in `.agents/IMPLEMENTATION_DECISIONS.md`.
 - `prepare_gold_annotations.py`
 - `assign_gold_annotations.py`
 - `finalize_gold_annotations.py`
+- `run_llm_extraction.py`
+- `evaluate_llm_extraction.py`
 - `oci_model_panel_smoke_test.py`
 - `requirements.txt`
 - `.agents/`

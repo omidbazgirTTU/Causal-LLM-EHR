@@ -41,6 +41,8 @@ See `MODEL_SELECTION.md`.
 - `NOTE_EXTRACTION_PLAN.md`: extraction schema and model constraints
 - `CAUSAL_PLAN.md`: datasets, estimands, and robustness outputs
 - `TASKS.md`: phase breakdown
+- `note_extraction/AGENTS.md`: extraction schema, output names, and prompt rules
+- `evaluation/AGENTS.md`: extraction-vs-gold metrics and baseline comparison rules
 - `rule_based_annotator/AGENTS.md`: deterministic baseline measurement rules
 - `*/AGENTS.md`: phase-specific agent rules
 
