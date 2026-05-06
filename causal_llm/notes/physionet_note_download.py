@@ -23,7 +23,9 @@ DEFAULT_REPORT_DIR = Path("reports/notes")
 DEFAULT_DATASET_SLUG = "mimic-iv-note"
 DEFAULT_DATASET_VERSION = "2.2"
 DEFAULT_NOTE_SUBDIRECTORY = "note"
-DEFAULT_TIMEOUT_SECONDS = 60.0
+DEFAULT_TIMEOUT_SECONDS = 600.0
+DEFAULT_DOWNLOAD_CHUNK_SIZE_BYTES = 8 * 1024 * 1024
+DEFAULT_DOWNLOAD_MAX_ATTEMPTS = 4
 DEFAULT_NOTE_FILES = (
     "discharge.csv.gz",
     "discharge_detail.csv.gz",
@@ -316,60 +318,101 @@ def download_one_file(
 
     destination_path.parent.mkdir(parents=True, exist_ok=True)
     temp_path = destination_path.with_suffix(destination_path.suffix + ".part")
-    if temp_path.exists():
+    if force and temp_path.exists():
         temp_path.unlink()
 
-    try:
-        request = urllib.request.Request(url=url, headers={"Accept": "*/*"})
-        total_bytes = 0
-        with opener.open(request, timeout=timeout_seconds) as response:
-            with open(temp_path, "wb") as file:
-                while True:
-                    chunk = response.read(1024 * 1024)
-                    if not chunk:
-                        break
-                    total_bytes += len(chunk)
-                    file.write(chunk)
+    for attempt in range(1, DEFAULT_DOWNLOAD_MAX_ATTEMPTS + 1):
+        existing_bytes = temp_path.stat().st_size if temp_path.exists() else 0
+        request_headers = {"Accept": "*/*"}
+        if existing_bytes:
+            # Preserve large partial downloads and ask the server for the
+            # remaining tail instead of restarting from byte zero.
+            request_headers["Range"] = f"bytes={existing_bytes}-"
 
-        temp_path.replace(destination_path)
-        return DownloadedNoteFile(
-            filename=destination_path.name,
-            destination_path=str(destination_path),
-            status="downloaded",
-            bytes_downloaded=total_bytes,
-            detail="Download completed.",
-        )
-    except urllib.error.HTTPError as exc:
-        if temp_path.exists():
-            temp_path.unlink()
-        detail = f"HTTP {exc.code}"
-        response_body = exc.read().decode("utf-8", errors="replace")
-        if exc.code == 403:
-            blocked_requirements = extract_access_requirements(response_body)
-            if blocked_requirements:
-                detail = "; ".join(blocked_requirements)
+        try:
+            request = urllib.request.Request(url=url, headers=request_headers)
+            with opener.open(request, timeout=timeout_seconds) as response:
+                response_code = response.getcode() or 200
+                resumed_transfer = existing_bytes > 0 and response_code == 206
+                if existing_bytes > 0 and not resumed_transfer:
+                    # Some servers ignore Range headers; when that happens we
+                    # restart cleanly rather than appending duplicate bytes.
+                    temp_path.unlink(missing_ok=True)
+                    existing_bytes = 0
+
+                total_bytes = existing_bytes
+                file_mode = "ab" if resumed_transfer else "wb"
+                with open(temp_path, file_mode) as file:
+                    while True:
+                        chunk = response.read(DEFAULT_DOWNLOAD_CHUNK_SIZE_BYTES)
+                        if not chunk:
+                            break
+                        total_bytes += len(chunk)
+                        file.write(chunk)
+
+            temp_path.replace(destination_path)
+            detail = "Download completed."
+            if existing_bytes:
+                detail = f"Download completed after resuming from {existing_bytes} bytes."
+            return DownloadedNoteFile(
+                filename=destination_path.name,
+                destination_path=str(destination_path),
+                status="downloaded",
+                bytes_downloaded=total_bytes,
+                detail=detail,
+            )
+        except urllib.error.HTTPError as exc:
+            response_body = exc.read().decode("utf-8", errors="replace")
+            if exc.code == 416 and temp_path.exists():
+                # The server can return 416 when the saved partial already
+                # matches the complete file size, so promote it in place.
+                total_bytes = temp_path.stat().st_size
+                temp_path.replace(destination_path)
+                return DownloadedNoteFile(
+                    filename=destination_path.name,
+                    destination_path=str(destination_path),
+                    status="downloaded",
+                    bytes_downloaded=total_bytes,
+                    detail="Saved partial file was already complete.",
+                )
+
+            if temp_path.exists() and exc.code in {400, 403, 404}:
+                temp_path.unlink()
+
+            detail = f"HTTP {exc.code}"
+            if exc.code == 403:
+                blocked_requirements = extract_access_requirements(response_body)
+                if blocked_requirements:
+                    detail = "; ".join(blocked_requirements)
+                else:
+                    detail = "PhysioNet denied access to the requested file."
+                status = "access_denied"
             else:
-                detail = "PhysioNet denied access to the requested file."
-            status = "access_denied"
-        else:
-            status = "http_error"
-        return DownloadedNoteFile(
-            filename=destination_path.name,
-            destination_path=str(destination_path),
-            status=status,
-            bytes_downloaded=0,
-            detail=detail,
-        )
-    except Exception as exc:  # pragma: no cover - integration path
-        if temp_path.exists():
-            temp_path.unlink()
-        return DownloadedNoteFile(
-            filename=destination_path.name,
-            destination_path=str(destination_path),
-            status="error",
-            bytes_downloaded=0,
-            detail=f"{type(exc).__name__}: {exc}",
-        )
+                status = "http_error"
+            return DownloadedNoteFile(
+                filename=destination_path.name,
+                destination_path=str(destination_path),
+                status=status,
+                bytes_downloaded=temp_path.stat().st_size if temp_path.exists() else 0,
+                detail=detail,
+            )
+        except Exception as exc:  # pragma: no cover - integration path
+            if attempt == DEFAULT_DOWNLOAD_MAX_ATTEMPTS:
+                partial_bytes = temp_path.stat().st_size if temp_path.exists() else 0
+                status = "partial" if partial_bytes else "error"
+                detail = f"{type(exc).__name__}: {exc}"
+                if partial_bytes:
+                    detail = (
+                        f"{detail}. Preserved {partial_bytes} bytes in resumable partial "
+                        f"file {temp_path} after {attempt} attempts."
+                    )
+                return DownloadedNoteFile(
+                    filename=destination_path.name,
+                    destination_path=str(destination_path),
+                    status=status,
+                    bytes_downloaded=partial_bytes,
+                    detail=detail,
+                )
 
 
 def write_outputs(
@@ -506,12 +549,13 @@ def run_note_download(config: PhysioNetNoteDownloadConfig) -> PhysioNetNoteDownl
                     )
                 )
 
-            if any(result.status not in {"downloaded", "skipped_existing"} for result in file_results):
-                access_granted = False
-                first_failure = next(
-                    (result.detail for result in file_results if result.status not in {"downloaded", "skipped_existing"}),
-                    None,
-                )
+            failed_results = [
+                result for result in file_results if result.status not in {"downloaded", "skipped_existing"}
+            ]
+            if failed_results:
+                if any(result.status == "access_denied" for result in failed_results):
+                    access_granted = False
+                first_failure = failed_results[0].detail
                 access_gate_reason = first_failure or "One or more requested note files could not be downloaded."
     except Exception as exc:
         access_gate_reason = str(exc)
